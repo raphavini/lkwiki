@@ -1,0 +1,6 @@
+{
+  "name": "Rad Wiki",
+  "description": "A visually beautiful and functional wiki site built with React and Tailwind CSS. It features a collapsible side menu generated from a configuration file and renders content from Markdown.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
