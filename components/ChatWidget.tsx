@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { GoogleGenAI, Chat } from '@google/genai';
-import { menuConfig } from '../data/menu';
-import { MenuItem, ChatMessage } from '../types';
+import { ChatMessage } from '../types';
 import { ChatBubbleIcon, SendIcon, SparklesIcon, XIcon } from './Icons';
 import ChatMessageBubble from './ChatMessageBubble';
+import { wikiContent } from '../data/content';
 
 const ChatWidget: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,34 +15,15 @@ const ChatWidget: React.FC = () => {
   const wikiContentRef = useRef<string | null>(null);
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
 
-  const getAllPaths = (items: MenuItem[]): string[] => {
-    const paths: string[] = [];
-    items.forEach(item => {
-      if (item.path) {
-        paths.push(item.path);
-      }
-      if (item.children) {
-        paths.push(...getAllPaths(item.children));
-      }
-    });
-    return paths;
-  };
-
   useEffect(() => {
-    const initializeChat = async () => {
+    const initializeChat = () => {
       setIsLoading(true);
       setError(null);
       try {
         if (!wikiContentRef.current) {
-          const allPaths = getAllPaths(menuConfig);
-          const contentPromises = allPaths.map(path =>
-            fetch(`/content/${path}.md`).then(res => {
-              if (!res.ok) return `Error loading content for ${path}.`;
-              return res.text();
-            })
-          );
-          const allContent = await Promise.all(contentPromises);
-          wikiContentRef.current = allContent.join('\n\n---\n\n');
+          // Join all markdown content from the imported object
+          const allContent = Object.values(wikiContent).join('\n\n---\n\n');
+          wikiContentRef.current = allContent;
         }
 
         if (!wikiContentRef.current) {
