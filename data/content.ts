@@ -1,5 +1,5 @@
 export const wikiContent: Record<string, string> = {
-  'introducao': `# Bem-vindo à Wiki de Dados da Gemini Corp
+  'introducao': `# Bem-vindo à Wiki de Dados da ...
 
 ## Como Contribuir
 
