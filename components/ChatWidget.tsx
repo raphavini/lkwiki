@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { GoogleGenAI, Chat } from '@google/genai';
-import { ChatMessage } from '../types';
+import { menuConfig } from '../data/menu';
+import { MenuItem, ChatMessage } from '../types';
 import { ChatBubbleIcon, SendIcon, SparklesIcon, XIcon } from './Icons';
 import ChatMessageBubble from './ChatMessageBubble';
-import { wikiContent } from '../data/content';
 
 const ChatWidget: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,15 +15,34 @@ const ChatWidget: React.FC = () => {
   const wikiContentRef = useRef<string | null>(null);
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
 
+  const getAllPaths = (items: MenuItem[]): string[] => {
+    const paths: string[] = [];
+    items.forEach(item => {
+      if (item.path) {
+        paths.push(item.path);
+      }
+      if (item.children) {
+        paths.push(...getAllPaths(item.children));
+      }
+    });
+    return paths;
+  };
+
   useEffect(() => {
-    const initializeChat = () => {
+    const initializeChat = async () => {
       setIsLoading(true);
       setError(null);
       try {
         if (!wikiContentRef.current) {
-          // Join all markdown content from the imported object
-          const allContent = Object.values(wikiContent).join('\n\n---\n\n');
-          wikiContentRef.current = allContent;
+          const allPaths = getAllPaths(menuConfig);
+          const contentPromises = allPaths.map(path =>
+            fetch(`/content/${path}.md`).then(res => {
+              if (!res.ok) return `Error loading content for ${path}.`;
+              return res.text();
+            })
+          );
+          const allContent = await Promise.all(contentPromises);
+          wikiContentRef.current = allContent.join('\n\n---\n\n');
         }
 
         if (!wikiContentRef.current) {
@@ -31,7 +50,7 @@ const ChatWidget: React.FC = () => {
         }
         
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-        const systemInstruction = `You are a helpful and friendly AI assistant for the RadWiki. Your name is 'Rad Wiki Assistant'.
+        const systemInstruction = `You are a helpful and friendly AI assistant for the Gemini Corp Wiki. Your name is 'Gemini Wiki Assistant'.
 You must answer user questions based *only* on the provided context below, which contains all documentation from the wiki.
 If the answer to a question cannot be found in the context, you must state that you do not have that information in the wiki. Do not make up answers.
 When referencing content, you can suggest links to the pages, for example: "You can find more details in the [con_users](#/bigquery/consumo/con-users) page."
